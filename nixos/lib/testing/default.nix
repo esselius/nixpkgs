@@ -17,6 +17,7 @@ let
     ./network.nix
     ./nodes.nix
     ./pkgs.nix
+    ./playwright.nix
     ./run.nix
     ./testScript.nix
   ];

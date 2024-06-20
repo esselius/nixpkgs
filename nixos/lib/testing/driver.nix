@@ -63,6 +63,7 @@ let
           cat "${../test-script-prepend.py}" >> testScriptWithTypes
           echo "${builtins.toString machineNames}" >> testScriptWithTypes
           echo "${builtins.toString vlanNames}" >> testScriptWithTypes
+          echo "${config.testScriptPreamble}" >> testScriptWithTypes
           echo -n "$testScript" >> testScriptWithTypes
 
           echo "Running type check (enable/disable: config.skipTypeCheck)"
@@ -74,6 +75,7 @@ let
                 testScriptWithTypes
         ''}
 
+        echo "${config.testScriptPreamble}" >> $out/test-script
         echo -n "$testScript" >> $out/test-script
 
         ln -s ${testDriver}/bin/nixos-test-driver $out/bin/nixos-test-driver
@@ -96,7 +98,8 @@ let
           --set testScript "$out/test-script" \
           --set globalTimeout "${toString config.globalTimeout}" \
           --set vlans '${toString vlans}' \
-          ${lib.escapeShellArgs (lib.concatMap (arg: ["--add-flags" arg]) config.extraDriverArgs)}
+          ${lib.escapeShellArgs (lib.concatMap (arg: ["--add-flags" arg]) config.extraDriverArgs)} \
+          ${lib.escapeShellArgs (lib.flatten (lib.mapAttrsToList (k: v: ["--set" k v]) config.extraDriverEnv))}
       '';
 
 in
@@ -166,6 +169,16 @@ in
       '';
       type = types.listOf types.str;
       default = [];
+    };
+
+    extraDriverEnv = mkOption {
+      description = ''
+        Extra environment variables to pass to the test driver.
+
+        They become part of [{option}`driver`](#test-opt-driver) via `wrapProgram`.
+      '';
+      type = types.attrs;
+      default = { };
     };
 
     skipLint = mkOption {

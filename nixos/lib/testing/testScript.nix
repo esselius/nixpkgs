@@ -5,6 +5,10 @@ let
 in
 {
   options = {
+    testScriptPreamble = mkOption {
+      default = "";
+      type = types.str;
+    };
     testScript = mkOption {
       type = either str (functionTo str);
       description = ''
